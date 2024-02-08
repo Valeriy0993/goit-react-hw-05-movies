@@ -1,4 +1,4 @@
-import styles from './reviews-page.module.css';
+// import styles from './reviews-page.module.css';
 
 const ReviewsPage = () => {};
 
