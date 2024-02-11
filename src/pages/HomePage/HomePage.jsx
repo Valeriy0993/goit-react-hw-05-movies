@@ -1,14 +1,30 @@
-// import styles from './home-page.module.css';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { getTrendingMovies } from '../api/api';
 
-const HomePage = () => {
+const Home = () => {
+  const [trendingMovies, setTrendingMovies] = useState([]);
+
+  useEffect(() => {
+    const fetchTrendingMovies = async () => {
+      const movies = await getTrendingMovies();
+      setTrendingMovies(movies);
+    };
+    fetchTrendingMovies();
+  }, []);
+
   return (
     <div>
-      <h1>Trending today</h1>
+      <h2>Trending Movies</h2>
       <ul>
-        <li>List</li>
+        {trendingMovies.map(movie => (
+          <li key={movie.id}>
+            <Link to={`/movies/${movie.id}`}>{movie.title}</Link>
+          </li>
+        ))}
       </ul>
     </div>
   );
 };
 
-export default HomePage;
+export default Home;

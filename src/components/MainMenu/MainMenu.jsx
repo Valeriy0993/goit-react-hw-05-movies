@@ -1,3 +1,4 @@
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 import styles from './main-menu.module.css';
@@ -11,7 +12,7 @@ const MainMenu = () => {
         </NavLink>
       </li>
       <li>
-        <NavLink className={styles.link} to="/src/pages/MoviesPages">
+        <NavLink className={styles.link} to="/movies/movies">
           Movies
         </NavLink>
       </li>
