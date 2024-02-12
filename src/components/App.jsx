@@ -9,6 +9,9 @@ const MovieDetails = React.lazy(() =>
 );
 const Cast = React.lazy(() => import('pages/CastPage/CastPage'));
 const Reviews = React.lazy(() => import('pages/ReviewsPages/ReviewsPage'));
+const NotFoundPage = React.lazy(() =>
+  import('pages/NotFoundPage/NotFoundPage')
+);
 
 const App = () => {
   return (
@@ -21,7 +24,7 @@ const App = () => {
           <Route path="/movies/:movieId" element={<MovieDetails />} />
           <Route path="/movies/:movieId/cast" element={<Cast />} />
           <Route path="/movies/:movieId/reviews" element={<Reviews />} />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </div>
