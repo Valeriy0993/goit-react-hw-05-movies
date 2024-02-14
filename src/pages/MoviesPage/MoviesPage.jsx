@@ -1,75 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-const Movies = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+import MoviesSearchForm from 'components/MovieSearchForm/MovieSearchForm';
+import MoviesList from 'components/MovieList/MovieList';
+
+import { searchMovies } from '../../api/api';
+
+const MoviesPage = () => {
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // eslint-disable-next-line no-unused-vars
-  const currentLocation = useLocation();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const search = searchParams.get('search');
+  const page = searchParams.get('page');
 
   useEffect(() => {
-    const storedResults = localStorage.getItem('searchResults');
-    if (storedResults) {
-      setSearchResults(JSON.parse(storedResults));
-    }
-  }, []);
-
-  const handleSubmit = async event => {
-    event.preventDefault();
-
-    try {
-      const response = await fetch(
-        `https://api.themoviedb.org/3/search/movie?include_adult=false&language=en-US&page=1&query=${searchQuery}&api_key=26362fc59abb5f3a891dc2f9c6943e3e`
-      );
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        const { data } = await searchMovies(search, page);
+        if (movies.length === 0) {
+          setMovies(data.results || []);
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setSearchResults(data.results);
-      localStorage.setItem('searchResults', JSON.stringify(data.results));
-    } catch (error) {
-      setError(error.message);
+    };
+
+    if (search && (page === '1' || !page)) {
+      fetchMovies();
     }
+  }, [search, page, movies]);
+
+  const handleSearch = ({ search }) => {
+    setSearchParams({ search, page: 1 });
+    setMovies([]);
   };
 
-  useEffect(() => {
-    const clearLocalStorage = () => {
-      localStorage.removeItem('searchResults');
-    };
-
-    const handleBeforeUnload = () => {
-      clearLocalStorage();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
+  const isMovies = Boolean(movies.length);
 
   return (
     <div>
-      <h2>Search Movies</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-        />
-        <button type="submit">Search</button>
-      </form>
-      {error && <p>Error fetching data: {error}</p>}
-      <ul>
-        {searchResults.map(movie => (
-          <li key={movie.id}>
-            <Link to={`/movies/${movie.id}`}>{movie.title}</Link>
-          </li>
-        ))}
-      </ul>
+      <MoviesSearchForm onSubmit={handleSearch} />
+      {error && <p>{error}</p>}
+      {loading && <p>Loading...</p>}
+      {isMovies && <MoviesList items={movies} />}
     </div>
   );
 };
 
-export default Movies;
+export default MoviesPage;

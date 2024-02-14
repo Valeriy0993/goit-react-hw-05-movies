@@ -1,7 +1,11 @@
-import styles from './not-found-page.module.css';
+import { Link } from 'react-router-dom';
 
 const NotFoundPage = () => {
-  return <h1 className={styles.title}>Not Found Page</h1>;
+  return (
+    <div>
+      <h1>Cannot found this page</h1>
+      <Link to="/">To home page</Link>
+    </div>
+  );
 };
-
 export default NotFoundPage;

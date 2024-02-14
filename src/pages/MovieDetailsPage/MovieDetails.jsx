@@ -1,88 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { getMovieDetails } from '../api/api';
-import Reviews from '../ReviewsPages/ReviewsPage';
-import Cast from '../CastPage/CastPage';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { getMoviesDetails } from '../../api/api';
+import Cast from '../../components/Cast/Cast';
+import Reviews from '../../components/Reviews/Reviews';
 
 import styles from './movie-details.module.css';
 
-const MovieDetails = () => {
-  const { movieId } = useParams();
-  const [movieDetails, setMovieDetails] = useState(null);
-  const [showReviews, setShowReviews] = useState(false);
-  const [showCast, setShowCast] = useState(false);
+const MovieDetailsPage = () => {
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedComponent, setSelectedComponent] = useState(null);
+
+  const { id } = useParams();
+  const location = useLocation();
+  const from = location.state?.from || '/';
+  const navigate = useNavigate();
+  const BASE_URL = 'https://image.tmdb.org/t/p/w300';
 
   useEffect(() => {
-    const fetchMovieDetails = async () => {
-      const details = await getMovieDetails(movieId);
-      setMovieDetails(details);
+    const fetchMoviesDetails = async () => {
+      try {
+        setLoading(true);
+        const { data } = await getMoviesDetails(id);
+        setMovie(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchMovieDetails();
-  }, [movieId]);
+    fetchMoviesDetails();
+  }, [id]);
 
-  const handleToggleReviews = () => {
-    setShowReviews(!showReviews);
-    setShowCast(false);
-  };
+  const goBack = () => navigate(from);
 
-  const handleToggleCast = () => {
-    setShowCast(!showCast);
-    setShowReviews(false);
+  const { title, poster_path, overview, vote_average, genres } = movie || {};
+
+  const handleComponentClick = componentName => {
+    if (selectedComponent === componentName) {
+      setSelectedComponent(null);
+    } else {
+      setSelectedComponent(componentName);
+    }
   };
 
   return (
     <div>
-      <button onClick={() => window.history.back()}>&#8592; Go back</button>
-      {movieDetails ? (
-        <div className={styles.movieContainer}>
-          <img
-            className={styles.movieImg}
-            src={`https://image.tmdb.org/t/p/w500/${movieDetails.poster_path}`}
-            alt={movieDetails.title}
-          />
-          <div className={styles.descriptionContainer}>
-            <h2>
-              {movieDetails.title} ({movieDetails.release_date.split('-')[0]})
-            </h2>
-            <p>User Score: {Math.round(movieDetails.vote_average * 10)}%</p>
-            <div>
-              <h3>Overview</h3>
-              <p>{movieDetails.overview}</p>
-            </div>
-            <div>
-              <h3>Genres</h3>
-              <ul className={styles.genresList}>
-                {movieDetails.genres.map(genre => (
-                  <li key={genre.id}>{genre.name}</li>
-                ))}
-              </ul>
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+      <button onClick={goBack} type="button">
+        Go back
+      </button>
+      {movie && (
+        <>
+          <div className={styles.movieContainer}>
+            <img
+              className={styles.movieImg}
+              src={poster_path ? BASE_URL + poster_path : ''}
+              alt={title}
+            />
+            <div className={styles.descriptionContainer}>
+              <h1>
+                {title} ({movie.release_date.split('-')[0]})
+              </h1>
+              <p>User Score: {Math.round(vote_average * 10)}%</p>
+              <h2>Overview: </h2>
+              <p>{overview}</p>
+              <h2>Genres:</h2>
+              <p>{genres && genres.map(i => i.name).join(', ')}</p>
             </div>
           </div>
-        </div>
-      ) : (
-        <p>Loading...</p>
+          <div>
+            <p>Additional information</p>
+            <ul>
+              <li>
+                <Link to="#" onClick={() => handleComponentClick('cast')}>
+                  Cast
+                </Link>
+              </li>
+              <li>
+                <Link to="#" onClick={() => handleComponentClick('reviews')}>
+                  Reviews
+                </Link>
+              </li>
+            </ul>
+            {selectedComponent === 'cast' && <Cast />}
+            {selectedComponent === 'reviews' && <Reviews />}
+          </div>
+        </>
       )}
-      <div className={styles.informationContainer}>
-        <p>Additional information</p>
-        <ul className={styles.informationList}>
-          <li>
-            <Link to="#" onClick={handleToggleCast}>
-              Cast
-            </Link>
-          </li>
-          <li>
-            <Link to="#" onClick={handleToggleReviews}>
-              Reviews
-            </Link>
-          </li>
-        </ul>
-        {showReviews && <Reviews movieId={movieId} />}
-        {showCast && <Cast movieId={movieId} />}
-      </div>
     </div>
   );
 };
 
-export default MovieDetails;
+export default MovieDetailsPage;
