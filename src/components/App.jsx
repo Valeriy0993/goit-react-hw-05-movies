@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
-import MainMenu from './MainMenu/MainMenu';
+import { lazy } from 'react';
+import SharedLayout from './SharedLayout/SharedLayout';
 
 const Home = lazy(() => import('pages/HomePage/HomePage'));
 const MoviesPage = lazy(() => import('pages/MoviesPage/MoviesPage'));
@@ -12,17 +12,17 @@ const NotFoundPage = lazy(() => import('pages/NotFoundPage/NotFoundPage'));
 const App = () => {
   return (
     <div>
-      <MainMenu />
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/movies" element={<MoviesPage />} />
-          <Route path="/movies/:id" element={<MovieDetails />} />
-          <Route path="cast" element={<Cast />} />
-          <Route path="reviews" element={<Reviews />} />
+      <Routes>
+        <Route path="/" element={<SharedLayout />}>
+          <Route index element={<Home />} />
+          <Route path="movies" element={<MoviesPage />} />
+          <Route path="movies/:id" element={<MovieDetails />}>
+            <Route path="cast" element={<Cast />} />
+            <Route path="reviews" element={<Reviews />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+        </Route>
+      </Routes>
     </div>
   );
 };

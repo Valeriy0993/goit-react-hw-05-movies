@@ -4,6 +4,7 @@ import { getMoviesCredits } from '../../api/api';
 import styles from './cast.module.css';
 
 const BASE_URL = 'https://image.tmdb.org/t/p/w300';
+const DEFAULT_IMG = 'https://via.placeholder.com/300';
 
 const Cast = () => {
   const [cast, setCast] = useState([]);
@@ -27,28 +28,34 @@ const Cast = () => {
     fetchCast();
   }, [id]);
 
+  const elements = cast.map(
+    ({ id, character, original_name, profile_path }) => (
+      <li key={id}>
+        <img
+          className={styles.castImg}
+          src={profile_path ? BASE_URL + profile_path : DEFAULT_IMG}
+          alt="Foto"
+        />
+        <p>{original_name}</p>
+        <p>character: {character}</p>
+      </li>
+    )
+  );
+
   const isCast = Boolean(cast.length);
 
   return (
     <>
       {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-      {!loading && isCast ? (
-        <ul>
-          {cast.map(({ id, character, original_name, profile_path }) => (
-            <li key={id}>
-              <img
-                className={styles.castImg}
-                src={BASE_URL + profile_path}
-                alt="Foto"
-              />
-              <p>{original_name}</p>
-              <p>Character: {character}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>{!loading && "We don't have any cast for this movie"}</p>
+      {!loading && (
+        <>
+          {error && <p>{error}</p>}
+          {isCast ? (
+            <ul>{elements}</ul>
+          ) : (
+            <p>We don't have any cast for this movie.</p>
+          )}
+        </>
       )}
     </>
   );

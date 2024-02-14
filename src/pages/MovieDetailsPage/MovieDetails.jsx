@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Suspense, useState, useEffect } from 'react';
+import {
+  Link,
+  Outlet,
+  useParams,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import { getMoviesDetails } from '../../api/api';
-import Cast from '../../components/Cast/Cast';
-import Reviews from '../../components/Reviews/Reviews';
 
 import styles from './movie-details.module.css';
 
 const MovieDetailsPage = () => {
-  const [movie, setMovie] = useState(null);
+  const [movie, setMovie] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedComponent, setSelectedComponent] = useState(null);
 
   const { id } = useParams();
   const location = useLocation();
+
   const from = location.state?.from || '/';
+
   const navigate = useNavigate();
+
   const BASE_URL = 'https://image.tmdb.org/t/p/w300';
 
   useEffect(() => {
@@ -38,14 +44,6 @@ const MovieDetailsPage = () => {
 
   const { title, poster_path, overview, vote_average, genres } = movie || {};
 
-  const handleComponentClick = componentName => {
-    if (selectedComponent === componentName) {
-      setSelectedComponent(null);
-    } else {
-      setSelectedComponent(componentName);
-    }
-  };
-
   return (
     <div>
       {loading && <p>Loading...</p>}
@@ -63,9 +61,14 @@ const MovieDetailsPage = () => {
             />
             <div className={styles.descriptionContainer}>
               <h1>
-                {title} ({movie.release_date.split('-')[0]})
+                {title} (
+                {movie &&
+                  movie.release_date &&
+                  movie.release_date.split('-')[0]}
+                )
               </h1>
-              <p>User Score: {Math.round(vote_average * 10)}%</p>
+              <h2>User Score:</h2>
+              <p>{Math.round(vote_average * 10)}%</p>
               <h2>Overview: </h2>
               <p>{overview}</p>
               <h2>Genres:</h2>
@@ -73,21 +76,22 @@ const MovieDetailsPage = () => {
             </div>
           </div>
           <div>
-            <p>Additional information</p>
+            <h3>Additional information</h3>
             <ul>
               <li>
-                <Link to="#" onClick={() => handleComponentClick('cast')}>
+                <Link to={'cast'} state={{ from }}>
                   Cast
                 </Link>
               </li>
               <li>
-                <Link to="#" onClick={() => handleComponentClick('reviews')}>
+                <Link to={'reviews'} state={{ from }}>
                   Reviews
                 </Link>
               </li>
             </ul>
-            {selectedComponent === 'cast' && <Cast />}
-            {selectedComponent === 'reviews' && <Reviews />}
+            <Suspense fallback={<p>Loading...</p>}>
+              <Outlet />
+            </Suspense>
           </div>
         </>
       )}
